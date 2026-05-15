@@ -1,0 +1,26 @@
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: car-marketplace
+  namespace: car-marketplace
+  annotations:
+    kubernetes.io/ingress.class: "traefik"          # Civo K3s uses Traefik by default
+    cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    traefik.ingress.kubernetes.io/router.entrypoints: "websecure"
+    traefik.ingress.kubernetes.io/router.tls: "true"
+spec:
+  tls:
+    - hosts:
+        - cars.YOUR_DOMAIN.com           # ← replace with your domain or Civo external IP
+      secretName: car-marketplace-tls
+  rules:
+    - host: cars.YOUR_DOMAIN.com         # ← same as above
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: car-marketplace
+                port:
+                  name: http
