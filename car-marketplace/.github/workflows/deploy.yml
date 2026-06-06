@@ -23,7 +23,7 @@ env:
 jobs:
   detect-stack:
     name: 🔍 Detect project stack
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     outputs:
       stack: ${{ steps.detect.outputs.stack }}
       build_cmd: ${{ steps.detect.outputs.build_cmd }}
@@ -91,7 +91,7 @@ jobs:
 # ────────────────────────────────────────────
   test:
     name: 🧪 Test [${{ needs.detect-stack.outputs.stack }}]
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: detect-stack
     steps:
       - uses: actions/checkout@v4
@@ -133,7 +133,7 @@ jobs:
 # ────────────────────────────────────────────
   build-push:
     name: 🐳 Build & Push [${{ needs.detect-stack.outputs.stack }}]
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [detect-stack, test]
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop'
     permissions:
@@ -182,12 +182,13 @@ jobs:
 # ────────────────────────────────────────────
   deploy:
     name: 🚀 Deploy to Civo K3s
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: [detect-stack, build-push]
     if: github.ref == 'refs/heads/main'
     environment:
       name: production
       url: cars.127.0.0.1.nip.io    # ← replace with your domain
+      
     steps:
       - uses: actions/checkout@v4
 
