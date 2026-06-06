@@ -187,7 +187,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     environment:
       name: production
-      url: https://cars.YOUR_DOMAIN.com    # ← replace with your domain
+      url: cars.127.0.0.1.nip.io    # ← replace with your domain
     steps:
       - uses: actions/checkout@v4
 

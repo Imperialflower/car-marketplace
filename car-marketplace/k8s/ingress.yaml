@@ -11,10 +11,10 @@ metadata:
 spec:
   tls:
     - hosts:
-        - cars.YOUR_DOMAIN.com           # ← replace with your domain or Civo external IP
+        - cars.127.0.0.1.nip.io           # ← replace with your domain or Civo external IP
       secretName: car-marketplace-tls
   rules:
-    - host: cars.YOUR_DOMAIN.com         # ← same as above
+    - host: cars.127.0.0.1.nip.io         # ← same as above
       http:
         paths:
           - path: /
