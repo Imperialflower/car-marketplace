@@ -32,59 +32,48 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
+    
       - name: Detect stack from project files
         id: detect
+        shell: pwsh
         run: |
-          if [ -f "angular.json" ]; then
-            echo "stack=angular"        >> $GITHUB_OUTPUT
-            echo "build_cmd=npm run build -- --configuration production" >> $GITHUB_OUTPUT
-            echo "test_cmd=npm run test -- --watch=false --browsers=ChromeHeadless" >> $GITHUB_OUTPUT
-            echo "port=4200"            >> $GITHUB_OUTPUT
-
-          elif [ -f "package.json" ] && grep -q '"vite"' package.json; then
-            echo "stack=react-vite"     >> $GITHUB_OUTPUT
-            echo "build_cmd=npm run build" >> $GITHUB_OUTPUT
-            echo "test_cmd=npm run test -- --run 2>/dev/null || echo 'no tests'" >> $GITHUB_OUTPUT
-            echo "port=8080"            >> $GITHUB_OUTPUT
-
-          elif [ -f "package.json" ] && grep -q '"next"' package.json; then
-            echo "stack=nextjs"         >> $GITHUB_OUTPUT
-            echo "build_cmd=npm run build" >> $GITHUB_OUTPUT
-            echo "test_cmd=npm test 2>/dev/null || echo 'no tests'" >> $GITHUB_OUTPUT
-            echo "port=3000"            >> $GITHUB_OUTPUT
-
-          elif [ -f "package.json" ] && grep -q '"express"\|"fastify"\|"koa"' package.json; then
-            echo "stack=nodejs-backend" >> $GITHUB_OUTPUT
-            echo "build_cmd=echo 'no build step for Node'" >> $GITHUB_OUTPUT
-            echo "test_cmd=npm test 2>/dev/null || echo 'no tests'" >> $GITHUB_OUTPUT
-            echo "port=3000"            >> $GITHUB_OUTPUT
-
-          elif [ -f "pom.xml" ]; then
-            echo "stack=java-maven"     >> $GITHUB_OUTPUT
-            echo "build_cmd=mvn package -DskipTests" >> $GITHUB_OUTPUT
-            echo "test_cmd=mvn test"    >> $GITHUB_OUTPUT
-            echo "port=8080"            >> $GITHUB_OUTPUT
-
-          elif [ -f "build.gradle" ] || [ -f "build.gradle.kts" ]; then
-            echo "stack=java-gradle"    >> $GITHUB_OUTPUT
-            echo "build_cmd=./gradlew build -x test" >> $GITHUB_OUTPUT
-            echo "test_cmd=./gradlew test" >> $GITHUB_OUTPUT
-            echo "port=8080"            >> $GITHUB_OUTPUT
-
-          elif [ -f "requirements.txt" ] || [ -f "pyproject.toml" ]; then
-            echo "stack=python"         >> $GITHUB_OUTPUT
-            echo "build_cmd=echo 'no build for Python'" >> $GITHUB_OUTPUT
-            echo "test_cmd=pytest 2>/dev/null || echo 'no tests'" >> $GITHUB_OUTPUT
-            echo "port=8000"            >> $GITHUB_OUTPUT
-
-          else
-            echo "stack=unknown"        >> $GITHUB_OUTPUT
-            echo "build_cmd=echo 'Unknown stack - add detection logic'" >> $GITHUB_OUTPUT
-            echo "test_cmd=echo 'no tests'" >> $GITHUB_OUTPUT
-            echo "port=8080"            >> $GITHUB_OUTPUT
-          fi
-
-          echo "✅ Detected stack: $(cat $GITHUB_OUTPUT | grep '^stack=' | cut -d= -f2)"
+          if (Test-Path "angular.json") {
+            echo "stack=angular" >> $env:GITHUB_OUTPUT
+            echo "build_cmd=npm run build -- --configuration production" >> $env:GITHUB_OUTPUT
+            echo "test_cmd=echo no-tests" >> $env:GITHUB_OUTPUT
+            echo "port=4200" >> $env:GITHUB_OUTPUT
+          } elseif ((Test-Path "package.json") -and (Get-Content "package.json" | Select-String "vite")) {
+            echo "stack=react-vite" >> $env:GITHUB_OUTPUT
+            echo "build_cmd=npm run build" >> $env:GITHUB_OUTPUT
+            echo "test_cmd=echo no-tests" >> $env:GITHUB_OUTPUT
+            echo "port=8080" >> $env:GITHUB_OUTPUT
+          } elseif ((Test-Path "package.json") -and (Get-Content "package.json" | Select-String "next")) {
+            echo "stack=nextjs" >> $env:GITHUB_OUTPUT
+            echo "build_cmd=npm run build" >> $env:GITHUB_OUTPUT
+            echo "test_cmd=echo no-tests" >> $env:GITHUB_OUTPUT
+            echo "port=3000" >> $env:GITHUB_OUTPUT
+          } elseif ((Test-Path "package.json") -and (Get-Content "package.json" | Select-String "express|fastify|koa")) {
+            echo "stack=nodejs-backend" >> $env:GITHUB_OUTPUT
+            echo "build_cmd=echo no-build" >> $env:GITHUB_OUTPUT
+            echo "test_cmd=echo no-tests" >> $env:GITHUB_OUTPUT
+            echo "port=3000" >> $env:GITHUB_OUTPUT
+          } elseif (Test-Path "pom.xml") {
+            echo "stack=java-maven" >> $env:GITHUB_OUTPUT
+            echo "build_cmd=mvn package -DskipTests" >> $env:GITHUB_OUTPUT
+            echo "test_cmd=mvn test" >> $env:GITHUB_OUTPUT
+            echo "port=8080" >> $env:GITHUB_OUTPUT
+          } elseif (Test-Path "requirements.txt") {
+            echo "stack=python" >> $env:GITHUB_OUTPUT
+            echo "build_cmd=echo no-build" >> $env:GITHUB_OUTPUT
+            echo "test_cmd=echo no-tests" >> $env:GITHUB_OUTPUT
+            echo "port=8000" >> $env:GITHUB_OUTPUT
+          } else {
+            echo "stack=unknown" >> $env:GITHUB_OUTPUT
+            echo "build_cmd=echo unknown-stack" >> $env:GITHUB_OUTPUT
+            echo "test_cmd=echo no-tests" >> $env:GITHUB_OUTPUT
+            echo "port=8080" >> $env:GITHUB_OUTPUT
+          }
+          Write-Host "Detected stack: $(Get-Content $env:GITHUB_OUTPUT | Select-String 'stack=' | Select-Object -Last 1)"
 
 # ────────────────────────────────────────────
 # JOB 2: Test (uses detected stack commands)
